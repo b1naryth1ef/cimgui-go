@@ -82,7 +82,7 @@ GLFWwindow *igCreateGLFWWindow(const char *title, int width, int height, GLFWWin
   }
 
   if ((flags & GLFWWindowFlagsFrameless) != 0) {
-    glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   }
 
   if ((flags & GLFWWindowFlagsTransparent) != 0) {
@@ -157,8 +157,7 @@ void glfw_render(GLFWwindow *window, VoidCallback renderLoop) {
   int display_w, display_h;
   glfwGetFramebufferSize(window, &display_w, &display_h);
   glViewport(0, 0, display_w, display_h);
-  glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w,
-               clear_color.w);
+  glClearColor(0, 0, 0, 0);
   glClear(GL_COLOR_BUFFER_BIT);
   ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
 
