@@ -30,9 +30,25 @@ void igSetBgColor(ImVec4 color) { clear_color = color; }
 
 void igSetTargetFPS(unsigned int fps) { glfw_target_fps = fps; }
 
+
+static DropCallback callback = NULL;
+
+static void drop_callback(GLFWwindow* window, int count, const char** paths) {
+  if (callback != NULL) {
+    callback(count, paths);
+  }
+}
+
+
+void glfw_set_drop_callback(GLFWwindow *window, DropCallback cb) {
+  callback = cb;
+  glfwSetDropCallback(window, drop_callback);
+}
+
 static void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
+
 
 void glfw_window_refresh_callback(GLFWwindow *window) {
   VoidCallback loopFunc = (VoidCallback)(glfwGetWindowUserPointer(window));
@@ -94,7 +110,7 @@ GLFWwindow *igCreateGLFWWindow(const char *title, int width, int height, GLFWWin
   if (window == NULL)
     return NULL;
   glfwMakeContextCurrent(window);
-  glfwSwapInterval(1); // Enable vsync
+  glfwSwapInterval(0); // Enable vsync
 
   // Setup Dear ImGui context
   igCreateContext(0);
@@ -136,6 +152,11 @@ GLFWwindow *igCreateGLFWWindow(const char *title, int width, int height, GLFWWin
   glfwMakeContextCurrent(NULL);
   return window;
 }
+
+// void glfwSetDRop
+
+//   // drop callback
+//   glfwSetDropCallback(window, drop_callback);
 
 void igRefresh() { glfwPostEmptyEvent(); }
 

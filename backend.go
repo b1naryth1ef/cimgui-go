@@ -16,6 +16,7 @@ package imgui
 // extern void glfwAfterRender();
 // extern void glfwAfterCreateContext();
 // extern void glfwBeforeDestoryContext();
+// extern void glfwDropCallback(int, void* ptr);
 // #include <stdint.h>
 // #include "backend.h"
 import "C"
@@ -38,6 +39,8 @@ const (
 
 type voidCallbackFunc func()
 
+type PathDropCallback func([]string)
+
 var (
 	afterCreateContext   voidCallbackFunc
 	loopFunc             voidCallbackFunc
@@ -47,6 +50,8 @@ var (
 )
 
 type GLFWwindow uintptr
+
+var pathDropCallbacks []PathDropCallback = make([]PathDropCallback, 0)
 
 func (w GLFWwindow) handle() *C.GLFWwindow {
 	return (*C.GLFWwindow)(unsafe.Pointer(w))
@@ -137,6 +142,7 @@ func CreateGlfwWindow(title string, width, height int, flags GLFWWindowFlags) GL
 		panic("Failed to create GLFW window")
 	}
 
+	C.glfw_set_drop_callback(window.handle(), C.DropCallback(C.glfwDropCallback))
 	return window
 }
 
@@ -158,4 +164,21 @@ func CreateTextureRgba(img *image.RGBA, width, height int) TextureID {
 
 func DeleteTexture(id TextureID) {
 	C.igDeleteTexture(C.ImTextureID(id))
+}
+
+//export glfwDropCallback
+func glfwDropCallback(count C.int, ptr unsafe.Pointer) {
+	result := make([]string, count)
+	for i := 0; i < int(count); i++ {
+		result[i] = C.GoString(*(**C.char)(ptr))
+		ptr = unsafe.Add(ptr, 8)
+	}
+
+	for _, callback := range pathDropCallbacks {
+		callback(result)
+	}
+}
+
+func AddPathDropCallback(callback PathDropCallback) {
+	pathDropCallbacks = append(pathDropCallbacks, callback)
 }
