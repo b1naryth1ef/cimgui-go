@@ -7464,21 +7464,20 @@ func PlotSetupAxisTicksdoubleV(axis PlotAxisEnum, v_min float64, v_max float64, 
 // PlotSetupAxisTicksdoublePtrV parameter default value hint:
 // keep_default: false
 // labels: ((void*)0)
-func PlotSetupAxisTicksdoublePtrV(axis PlotAxisEnum, values *[]float64, n_ticks int32, labels []string, keep_default bool) {
-	valuesArg := make([]C.double, len(*values))
-	for i, valuesV := range *values {
+func PlotSetupAxisTicksdoublePtrV(axis PlotAxisEnum, values []float64, n_ticks int32, labels []string, keep_default bool) {
+	valuesArg := make([]C.double, len(values))
+	for i, valuesV := range values {
 		valuesArg[i] = C.double(valuesV)
 	}
 
 	labelsArg, labelsFin := wrapStringList(labels)
 	C.ImPlot_SetupAxisTicks_doublePtr(C.ImAxis(axis), (*C.double)(&valuesArg[0]), C.int(n_ticks), labelsArg, C.bool(keep_default))
 
-	for i, valuesV := range valuesArg {
-		(*values)[i] = float64(valuesV)
-	}
+	// for i, valuesV := range valuesArg {
+	// 	(*values)[i] = float64(valuesV)
+	// }
 
 	labelsFin()
-
 }
 
 func PlotSetupAxisZoomConstraints(axis PlotAxisEnum, z_min float64, z_max float64) {
