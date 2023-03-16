@@ -869,18 +869,22 @@ func PlotBeginPlotV(title_id string, size Vec2, flags PlotFlags) bool {
 // col_ratios: ((void*)0)
 // flags: 0
 // row_ratios: ((void*)0)
-func PlotBeginSubplotsV(title_id string, rows int32, cols int32, size Vec2, flags PlotSubplotFlags, row_ratios *float32, col_ratios *float32) bool {
+func PlotBeginSubplotsV(title_id string, rows int32, cols int32, size Vec2, flags PlotSubplotFlags, row_ratios []float32, col_ratios []float32) bool {
 	title_idArg, title_idFin := wrapString(title_id)
-	row_ratiosArg, row_ratiosFin := wrapNumberPtr[C.float, float32](row_ratios)
-	col_ratiosArg, col_ratiosFin := wrapNumberPtr[C.float, float32](col_ratios)
+	// row_ratiosArg, row_ratiosFin := wrapNumberPtr[C.float, float32](row_ratios)
+	// col_ratiosArg, col_ratiosFin := wrapNumberPtr[C.float, float32](col_ratios)
+
+	// cValue := CTYPE(*goValue)
+	// wrapped = &cValue
+
 
 	defer func() {
 		title_idFin()
-		row_ratiosFin()
-		col_ratiosFin()
+		// row_ratiosFin()
+		// col_ratiosFin()
 
 	}()
-	return C.ImPlot_BeginSubplots(title_idArg, C.int(rows), C.int(cols), size.toC(), C.ImPlotSubplotFlags(flags), row_ratiosArg, col_ratiosArg) == C.bool(true)
+	return C.ImPlot_BeginSubplots(title_idArg, C.int(rows), C.int(cols), size.toC(), C.ImPlotSubplotFlags(flags), (*C.float)(unsafe.Pointer(&row_ratios[0])), (*C.float)(unsafe.Pointer(&col_ratios[0]))) == C.bool(true)
 }
 
 // PlotBustColorCacheV parameter default value hint:
