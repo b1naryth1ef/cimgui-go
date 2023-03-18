@@ -30,29 +30,53 @@ void igSetBgColor(ImVec4 color) { clear_color = color; }
 
 void igSetTargetFPS(unsigned int fps) { glfw_target_fps = fps; }
 
+static DropCallback drop_callback = NULL;
 
-static DropCallback callback = NULL;
-
-static void drop_callback(GLFWwindow* window, int count, const char** paths) {
-  if (callback != NULL) {
-    callback(count, paths);
+static void glfw_drop_callback(GLFWwindow* window, int count, const char** paths) {
+  if (drop_callback != NULL) {
+    drop_callback(count, paths);
   }
 }
 
-
 void glfw_set_drop_callback(GLFWwindow *window, DropCallback cb) {
-  callback = cb;
-  glfwSetDropCallback(window, drop_callback);
+  drop_callback = cb;
+  glfwSetDropCallback(window, glfw_drop_callback);
+}
+
+static CloseCallback close_callback = NULL;
+
+static void glfw_close_callback(GLFWwindow *window) {
+  if (close_callback != NULL) {
+    close_callback();
+  }
+}
+
+void glfw_set_close_callback(GLFWwindow *window, CloseCallback cb) {
+  close_callback = cb;
+  glfwSetWindowCloseCallback(window, glfw_close_callback);
 }
 
 static void glfw_error_callback(int error, const char *description) {
   fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-
 void glfw_window_refresh_callback(GLFWwindow *window) {
   VoidCallback loopFunc = (VoidCallback)(glfwGetWindowUserPointer(window));
   glfw_render(window, loopFunc);
+}
+
+void glfw_show_window(GLFWwindow *window) {
+  glfwShowWindow(window);
+}
+
+void glfw_hide_window(GLFWwindow *window) {
+  glfwHideWindow(window);
+}
+
+static bool closable = true;
+
+void glfw_set_closable(bool value) {
+  closable = value;
 }
 
 GLFWwindow *igCreateGLFWWindow(const char *title, int width, int height, GLFWWindowFlags flags,
@@ -123,12 +147,13 @@ GLFWwindow *igCreateGLFWWindow(const char *title, int width, int height, GLFWWin
   io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad
   // Controls
-  io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // Enable Docking
-  io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport
+  // io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // Enable Docking
+  // io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport
                                                        // / Platform Windows
   // io.ConfigViewportsNoAutoMerge = true;
   // io.ConfigViewportsNoTaskBarIcon = true;
 
+  io->BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
   io->IniFilename = "";
 
   // Setup Dear ImGui style
@@ -152,11 +177,6 @@ GLFWwindow *igCreateGLFWWindow(const char *title, int width, int height, GLFWWin
   glfwMakeContextCurrent(NULL);
   return window;
 }
-
-// void glfwSetDRop
-
-//   // drop callback
-//   glfwSetDropCallback(window, drop_callback);
 
 void igRefresh() { glfwPostEmptyEvent(); }
 
@@ -229,7 +249,7 @@ void igRunLoop(GLFWwindow *window, VoidCallback loop, VoidCallback beforeRender,
 
   // Main loop
   double lasttime = glfwGetTime();
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(window) || !closable) {
     if (beforeRender != NULL) {
       beforeRender();
     }

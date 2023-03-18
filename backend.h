@@ -21,6 +21,7 @@ typedef struct GLFWmonitor GLFWmonitor;
 struct GLFWwindow;
 struct GLFWmonitor;
 
+typedef void (*CloseCallback)();
 typedef void (*DropCallback)(int path_count, const char* paths[]);
 typedef void (*VoidCallback)();
 
@@ -36,6 +37,10 @@ extern void igRefresh();
 extern ImTextureID igCreateTexture(unsigned char *pixels, int width, int height);
 extern void igDeleteTexture(ImTextureID id);
 extern void glfw_set_drop_callback(GLFWwindow *window, DropCallback callback);
+extern void glfw_hide_window(GLFWwindow *window);
+extern void glfw_show_window(GLFWwindow *window);
+extern void glfw_set_closable(bool value);
+extern void glfw_set_close_callback(GLFWwindow* window, CloseCallback callback);
 
 #ifdef __cplusplus
 }

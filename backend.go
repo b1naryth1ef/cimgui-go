@@ -17,6 +17,7 @@ package imgui
 // extern void glfwAfterCreateContext();
 // extern void glfwBeforeDestoryContext();
 // extern void glfwDropCallback(int, void* ptr);
+// extern void glfwCloseCallback();
 // #include <stdint.h>
 // #include "backend.h"
 import "C"
@@ -73,6 +74,10 @@ func SetAfterRenderHook(hook func()) {
 	afterRender = hook
 }
 
+func SetClosable(value bool) {
+	C.glfw_set_closable(C.bool(value))
+}
+
 func SetBgColor(color Vec4) {
 	C.igSetBgColor(color.toC())
 }
@@ -96,6 +101,14 @@ func (w GLFWwindow) DisplaySize() (width int32, height int32) {
 
 func (w GLFWwindow) SetShouldClose(value bool) {
 	C.igGLFWWindow_SetShouldClose(w.handle(), C.int(castBool(value)))
+}
+
+func (w GLFWwindow) Show() {
+	C.glfw_show_window(w.handle())
+}
+
+func (w GLFWwindow) Hide() {
+	C.glfw_hide_window(w.handle())
 }
 
 //export glfwWindowLoopCallback
@@ -143,6 +156,7 @@ func CreateGlfwWindow(title string, width, height int, flags GLFWWindowFlags) GL
 	}
 
 	C.glfw_set_drop_callback(window.handle(), C.DropCallback(C.glfwDropCallback))
+	C.glfw_set_close_callback(window.handle(), C.CloseCallback(C.glfwCloseCallback))
 	return window
 }
 
@@ -179,6 +193,19 @@ func glfwDropCallback(count C.int, ptr unsafe.Pointer) {
 	}
 }
 
+var closeCallbacks = make([]voidCallbackFunc, 0)
+
+func AddCloseCallback(callback voidCallbackFunc) {
+	closeCallbacks = append(closeCallbacks, callback)
+}
+
 func AddPathDropCallback(callback PathDropCallback) {
 	pathDropCallbacks = append(pathDropCallbacks, callback)
+}
+
+//export glfwCloseCallback
+func glfwCloseCallback() {
+	for _, callback := range closeCallbacks {
+		callback()
+	}
 }
