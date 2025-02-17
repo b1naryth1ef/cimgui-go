@@ -1,4 +1,4 @@
-module github.com/AllenDang/cimgui-go
+module github.com/b1naryth1ef/cimgui-go
 
 go 1.24.0
 
